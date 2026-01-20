@@ -27,8 +27,15 @@
 
   h1 {
     font-size: 18px;
-    margin-bottom: 10px;
     text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .version {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 14px;
   }
 
   .guide {
@@ -53,11 +60,10 @@
     padding: 8px 10px;
     font-size: 14px;
     border-radius: 8px;
-    border: none;
-    outline: none;
+    border: 1px solid #334155;
     background: #020617;
     color: #e5e7eb;
-    border: 1px solid #334155;
+    outline: none;
   }
 
   input:focus {
@@ -103,35 +109,41 @@
     color: #38bdf8;
     font-weight: 700;
   }
+
+  details {
+    margin-top: 8px;
+  }
 </style>
 </head>
 
 <body>
-  <div class="box">
-    <h1>상급 아비도스 융화 재료 계산기</h1>
-    <div class="guide">
-      아래 칸에 보유 중인 재료 개수를 입력하세요
-    </div>
+<div class="box">
+  <h1>상급 아비도스 융화 재료 계산기</h1>
+  <div class="version">v1.2 · 제작 최적화 계산기</div>
+  <div class="guide">보유 중인 재료 개수를 입력하세요</div>
 
-    <div class="field">
-      <label>아비도스 유물 (A)</label>
-      <input type="number" id="a" value="0" onclick="clearZero(this)">
-    </div>
-
-    <div class="field">
-      <label>희귀한 유물 (B)</label>
-      <input type="number" id="b" value="0" onclick="clearZero(this)">
-    </div>
-
-    <div class="field">
-      <label>고대 유물 (C)</label>
-      <input type="number" id="c" value="0" onclick="clearZero(this)">
-    </div>
-
-    <button onclick="calculate()">계산하기</button>
-
-    <div class="result" id="result"></div>
+  <div class="field">
+    <label>아비도스 유물 (A)</label>
+    <input type="number" inputmode="numeric" pattern="[0-9]*"
+           id="a" value="0" onclick="clearZero(this)">
   </div>
+
+  <div class="field">
+    <label>희귀한 유물 (B)</label>
+    <input type="number" inputmode="numeric" pattern="[0-9]*"
+           id="b" value="0" onclick="clearZero(this)">
+  </div>
+
+  <div class="field">
+    <label>고대 유물 (C)</label>
+    <input type="number" inputmode="numeric" pattern="[0-9]*"
+           id="c" value="0" onclick="clearZero(this)">
+  </div>
+
+  <button onclick="calculate()">계산하기</button>
+
+  <div class="result" id="result"></div>
+</div>
 
 <script>
 function clearZero(el) {
@@ -147,13 +159,17 @@ function calculate() {
   let bestBTrade = 0;
   let bestCTrade = 0;
   let bestFinalA = A0;
+  let logText = "";
 
   for (let n = 1; n <= 1000; n++) {
     let needA = 43 * n;
     let needB = 59 * n;
     let needC = 112 * n;
 
-    if (B0 < needB || C0 < needC) break;
+    if (B0 < needB || C0 < needC) {
+      logText += `✖ ${n}개 제작 실패 (B 또는 C 부족)<br>`;
+      break;
+    }
 
     let remainB = B0 - needB;
     let remainC = C0 - needC;
@@ -166,11 +182,13 @@ function calculate() {
     let finalA = A0 + aFromPowder;
 
     if (finalA >= needA) {
+      logText += `✔ ${n}개 제작 가능 (A ${needA} / B ${needB} / C ${needC})<br>`;
       maxCraft = n;
       bestBTrade = bTrade;
       bestCTrade = cTrade;
       bestFinalA = finalA;
     } else {
+      logText += `✖ ${n}개 제작 실패 (A 부족)<br>`;
       break;
     }
   }
@@ -179,9 +197,23 @@ function calculate() {
     ▸ 희귀한 유물 교환 횟수: <span class="highlight">${bestBTrade}</span> 회<br>
     ▸ 고대 유물 교환 횟수: <span class="highlight">${bestCTrade}</span> 회<br><br>
     ▸ 최종 아비도스 유물: <span class="highlight">${bestFinalA}</span> 개<br>
-    ▸ 최대 제작 가능 수량: <span class="highlight">${maxCraft}</span> 개
+    ▸ 최대 제작 가능 수량: <span class="highlight">${maxCraft}</span> 개<br><br>
+
+    <details>
+      <summary style="cursor:pointer; color:#94a3b8;">
+        왜 이 개수가 최대인가요?
+      </summary>
+      <div style="margin-top:8px; font-size:13px;">
+        ${logText}
+      </div>
+    </details>
   `;
 }
+
+// 엔터키로 계산
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") calculate();
+});
 </script>
 </body>
 </html>
